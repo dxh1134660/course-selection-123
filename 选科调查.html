@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高一学生选科问卷调查</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .radio-option input {
+            width: auto;
+            margin-right: 5px;
+        }
+        
+        .combination-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .combination-option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .combination-option:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .combination-option.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #submitBtn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        #submitBtn:hover {
+            background-color: #27ae60;
+        }
+        
+        #modifyBtn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        #modifyBtn:hover {
+            background-color: #2980b9;
+        }
+        
+        #resetBtn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        #resetBtn:hover {
+            background-color: #c0392b;
+        }
+        
+        .message {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .qr-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 15px;
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .qr-code canvas {
+            border-radius: 6px;
+        }
+        
+        .admin-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .admin-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+            margin: 5px 0;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #exportBtn {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        #exportBtn:hover {
+            background-color: #8e44ad;
+        }
+        
+        #clearDataBtn {
+            background-color: #e67e22;
+            color: white;
+        }
+        
+        #clearDataBtn:hover {
+            background-color: #d35400;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .combination-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>高一学生选科问卷调查</h1>
+            <p class="description">请认真填写以下信息，提交后如需修改可重新扫描二维码</p>
+        </header>
+        
+        <form id="surveyForm">
+            <div class="form-group">
+                <label for="name">姓名</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="class">班级</label>
+                <select id="class" name="class" required>
+                    <option value="">请选择班级</option>
+                    <!-- 生成18个班级选项 -->
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="idCard">身份证号</label>
+                <input type="text" id="idCard" name="idCard" required>
+            </div>
+            
+            <div class="form-group">
+                <label>选择组合</label>
+                <div class="combination-options" id="combinationOptions">
+                    <div class="combination-option" data-value="物化生">物化生</div>
+                    <div class="combination-option" data-value="物化地">物化地</div>
+                    <div class="combination-option" data-value="物化政">物化政</div>
+                    <div class="combination-option" data-value="物生地">物生地</div>
+                    <div class="combination-option" data-value="物生政">物生政</div>
+                    <div class="combination-option" data-value="物政地">物政地</div>
+                    <div class="combination-option" data-value="历化生">历化生</div>
+                    <div class="combination-option" data-value="历化地">历化地</div>
+                    <div class="combination-option" data-value="历化政">历化政</div>
+                    <div class="combination-option" data-value="历生地">历生地</div>
+                    <div class="combination-option" data-value="历生政">历生政</div>
+                    <div class="combination-option" data-value="历政地">历政地</div>
+                </div>
+                <input type="hidden" id="combination" name="combination" required>
+            </div>
+            
+            <div class="form-group">
+                <label>是否选择日语</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="japaneseYes" name="japanese" value="是" required>
+                        <label for="japaneseYes">是</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="japaneseNo" name="japanese" value="否" checked>
+                        <label for="japaneseNo">否</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" id="submitBtn">提交问卷</button>
+                <button type="button" id="modifyBtn">修改信息</button>
+                <button type="button" id="resetBtn">重置表单</button>
+            </div>
+            
+            <div id="message" class="message"></div>
+        </form>
+        
+        <div class="qr-section">
+            <p>扫描二维码填写问卷</p>
+            <div class="qr-code" id="qrcode"></div>
+            <p>如需修改，重新扫描并填写即可</p>
+        </div>
+        
+        <div class="admin-section">
+            <div class="admin-header">
+                <h2>数据管理</h2>
+                <button type="button" id="toggleAdminBtn">管理员登录</button>
+            </div>
+            
+            <div class="admin-panel" id="adminPanel">
+                <h3>数据统计</h3>
+                <div class="admin-stats" id="adminStats">
+                    <!-- 统计数据将通过JavaScript动态生成 -->
+                </div>
+                
+                <h3>数据操作</h3>
+                <div class="admin-actions">
+                    <button type="button" id="exportBtn">导出Excel数据</button>
+                    <button type="button" id="clearDataBtn">清空所有数据</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 生成班级选项
+        const classSelect = document.getElementById('class');
+        for (let i = 1; i <= 18; i++) {
+            let classNum = i < 10 ? '0' + i : i;
+            const option = document.createElement('option');
+            option.value = `2028${classNum}`;
+            option.textContent = `2028${classNum}班`;
+            classSelect.appendChild(option);
+        }
+        
+        // 生成二维码
+        function generateQRCode() {
+            // 生成当前页面的URL作为二维码内容
+            // 实际应用中，这里应该是问卷的固定URL
+            const url = window.location.href;
+            
+            // 使用QRCode库生成二维码
+            QRCode.toCanvas(document.getElementById('qrcode'), url, {
+                width: 180,
+                height: 180,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function(error) {
+                if (error) {
+                    console.error('生成二维码失败:', error);
+                    document.getElementById('qrcode').innerHTML = '<span>二维码生成失败</span>';
+                }
+            });
+        }
+        
+        // 初始化本地存储
+        if (!localStorage.getItem('surveyData')) {
+            localStorage.setItem('surveyData', JSON.stringify({}));
+        }
+        
+        // 获取DOM元素
+        const form = document.getElementById('surveyForm');
+        const combinationOptions = document.querySelectorAll('.combination-option');
+        const combinationInput = document.getElementById('combination');
+        const submitBtn = document.getElementById('submitBtn');
+        const modifyBtn = document.getElementById('modifyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const messageDiv = document.getElementById('message');
+        const toggleAdminBtn = document.getElementById('toggleAdminBtn');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminStats = document.getElementById('adminStats');
+        const exportBtn = document.getElementById('exportBtn');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        
+        // 页面加载完成后生成二维码
+        document.addEventListener('DOMContentLoaded', function() {
+            generateQRCode();
+        });
+        
+        // 组合选择逻辑
+        combinationOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                combinationOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                combinationInput.value = this.getAttribute('data-value');
+            });
+        });
+        
+        // 提交问卷
+        submitBtn.addEventListener('click', function() {
+            if (validateForm()) {
+                const formData = getFormData();
+                const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+                
+                // 检查身份证号是否已存在
+                if (surveyData[formData.idCard]) {
+                    showMessage('该身份证号已提交过问卷，如需修改请点击"修改信息"按钮', 'error');
+                    return;
+                }
+                
+                // 保存数据
+                surveyData[formData.idCard] = formData;
+                localStorage.setItem('surveyData', JSON.stringify(surveyData));
+                
+                showMessage('问卷提交成功！', 'success');
+                form.reset();
+                combinationOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // 更新统计数据
+                updateAdminStats();
+            }
+        });
+        
+        // 修改信息
+        modifyBtn.addEventListener('click', function() {
+            const idCard = document.getElementById('idCard').value;
+            
+            if (!idCard) {
+                showMessage('请输入身份证号以查找您的信息', 'error');
+                return;
+            }
+            
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+            
+            if (surveyData[idCard]) {
+                // 填充表单数据
+                const data = surveyData[idCard];
+                document.getElementById('name').value = data.name;
+                document.getElementById('class').value = data.class;
+                document.getElementById('idCard').value = data.idCard;
+                
+                // 设置组合选项
+                combinationOptions.forEach(opt => {
+                    if (opt.getAttribute('data-value') === data.combination) {
+                        opt.classList.add('selected');
+                    } else {
+                        opt.classList.remove('selected');
+                    }
+                });
+                combinationInput.value = data.combination;
+                
+                // 设置日语选项
+                if (data.japanese === '是') {
+                    document.getElementById('japaneseYes').checked = true;
+                } else {
+                    document.getElementById('japaneseNo').checked = true;
+                }
+                
+                showMessage('已加载您的信息，修改后点击"提交问卷"保存', 'info');
+            } else {
+                showMessage('未找到该身份证号的记录，请确认身份证号是否正确', 'error');
+            }
+        });
+        
+        // 重置表单
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            combinationOptions.forEach(opt => opt.classList.remove('selected'));
+            combinationInput.value = '';
+            hideMessage();
+        });
+        
+        // 管理员面板切换
+        toggleAdminBtn.addEventListener('click', function() {
+            const password = prompt('请输入管理员密码:');
+            // 简单密码验证，实际应用中应使用更安全的验证方式
+            if (password === 'admin123') {
+                adminPanel.style.display = adminPanel.style.display === 'block' ? 'none' : 'block';
+                toggleAdminBtn.textContent = adminPanel.style.display === 'block' ? '隐藏管理面板' : '管理员登录';
+                
+                if (adminPanel.style.display === 'block') {
+                    updateAdminStats();
+                }
+            } else if (password !== null) {
+                alert('密码错误！');
+            }
+        });
+        
+        // 导出数据
+        exportBtn.addEventListener('click', function() {
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+            const dataArray = Object.values(surveyData);
+            
+            if (dataArray.length === 0) {
+                alert('没有数据可导出！');
+                return;
+            }
+            
+            // 准备Excel数据
+            const excelData = dataArray.map(item => ({
+                '姓名': item.name,
+                '班级': item.class,
+                '身份证号': item.idCard,
+                '选科组合': item.combination,
+                '是否选择日语': item.japanese,
+                '提交时间': item.submitTime
+            }));
+            
+            // 创建工作簿和工作表
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, '选科数据');
+            
+            // 生成Excel文件并下载
+            const fileName = `高一选科数据_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+            
+            showMessage('数据导出成功！', 'success');
+        });
+        
+        // 清空数据
+        clearDataBtn.addEventListener('click', function() {
+            if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                localStorage.setItem('surveyData', JSON.stringify({}));
+                updateAdminStats();
+                showMessage('所有数据已清空！', 'success');
+            }
+        });
+        
+        // 验证表单
+        function validateForm() {
+            const name = document.getElementById('name').value;
+            const classVal = document.getElementById('class').value;
+            const idCard = document.getElementById('idCard').value;
+            const combination = document.getElementById('combination').value;
+            
+            if (!name) {
+                showMessage('请输入姓名', 'error');
+                return false;
+            }
+            
+            if (!classVal) {
+                showMessage('请选择班级', 'error');
+                return false;
+            }
+            
+            if (!idCard) {
+                showMessage('请输入身份证号', 'error');
+                return false;
+            }
+            
+            // 简单的身份证号格式验证
+            if (!/^\d{17}[\dXx]$/.test(idCard)) {
+                showMessage('请输入正确的身份证号格式', 'error');
+                return false;
+            }
+            
+            if (!combination) {
+                showMessage('请选择组合', 'error');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 获取表单数据
+        function getFormData() {
+            const japanese = document.querySelector('input[name="japanese"]:checked').value;
+            
+            return {
+                name: document.getElementById('name').value,
+                class: document.getElementById('class').value,
+                idCard: document.getElementById('idCard').value,
+                combination: document.getElementById('combination').value,
+                japanese: japanese,
+                submitTime: new Date().toLocaleString()
+            };
+        }
+        
+        // 更新统计数据
+        function updateAdminStats() {
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+            const dataArray = Object.values(surveyData);
+            
+            // 统计各组合选择人数
+            const combinationCount = {};
+            const japaneseCount = {是: 0, 否: 0};
+            const classCount = {};
+            
+            dataArray.forEach(item => {
+                combinationCount[item.combination] = (combinationCount[item.combination] || 0) + 1;
+                japaneseCount[item.japanese] = (japaneseCount[item.japanese] || 0) + 1;
+                classCount[item.class] = (classCount[item.class] || 0) + 1;
+            });
+            
+            // 生成统计HTML
+            let statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${dataArray.length}</div>
+                    <div class="stat-label">总提交数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${japaneseCount['是']}</div>
+                    <div class="stat-label">选择日语人数</div>
+                </div>
+            `;
+            
+            // 添加最受欢迎的组合
+            let popularCombination = '无数据';
+            let maxCount = 0;
+            
+            for (const [key, value] of Object.entries(combinationCount)) {
+                if (value > maxCount) {
+                    maxCount = value;
+                    popularCombination = key;
+                }
+            }
+            
+            statsHTML += `
+                <div class="stat-card">
+                    <div class="stat-value">${popularCombination}</div>
+                    <div class="stat-label">最受欢迎组合</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Object.keys(classCount).length}</div>
+                    <div class="stat-label">已提交班级数</div>
+                </div>
+            `;
+            
+            adminStats.innerHTML = statsHTML;
+        }
+        
+        // 显示消息
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+        }
+        
+        // 隐藏消息
+        function hideMessage() {
+            messageDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
